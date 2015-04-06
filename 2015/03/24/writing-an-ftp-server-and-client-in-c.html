@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Writing an ftp server and client in c</title>
+  <meta name="description" content="    Currently i have a school project in which i'm asked to create an ftp server and client. So what is ftp? Acording to Wikipedia the file transfer protocol...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://yourdomain.com/2015/03/24/writing-an-ftp-server-and-client-in-c.html">
+  <link rel="alternate" type="application/rss+xml" title="Your awesome title" href="http://yourdomain.com/feed.xml" />
+</head>
+
+
+  <body>
+
+    <div class="container">
+     <header class="site-header">
+
+</header>
+
+ 		<div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Writing an ftp server and client in c</h1>
+    <p class="post-meta">Mar 24, 2015</p>
+  </header>
+
+  <article class="post-content">
+    <!-- STRUCTURE
+-Introduction to the ftp protocol.
+-Explanation of the ftp protocol.
+-Introduction to the socket api.
+-Explanation of how to code the client.
+-Explanation of how to code the server.
+-->
+<p>
+    Currently i have a school project in which i'm asked to create an ftp server and client. So what is ftp? Acording to Wikipedia the file transfer protocol (FTP) is a standard system of digital rules for data exchange, a format convention. It is used to transfer computer files from one host to another host over a TCP-based network.
+    After searching a bit online and looking in wireshark here is what we know:
+</p>
+<ul>
+    <li>
+        Ftp has two modes passive and active.
+    </li>
+    <li>
+        Ftp uses two connections the data conection and the command connection.
+    </li>
+    <li>
+        The command connection uses the telnet protocol specification.
+    </li>
+    <li>
+        A new data conection is made each time we start an exchange.
+    </li>
+    <li>
+        There is an ascii and a binary mode
+    </li>  
+</ul>
+
+<p>
+    So first we are going to make the client. Its not going to be fully compliant with the rfc specification but we are going to have the basic commands. To do this we are going to be testing the client with the vsFTPd 3.0.2 server.
+
+    So looking at the ftp traffic we see that the first message from the server after we connect is "220 (vsFTPd 3.0.2)". This message is followed by /n/t.
+    By default the ftp commands are exchanged in ascii mode following the telnet specification. Sending plaintext instructions to the server in the format:
+    
+</p>
+<p>
+    We are going to start by coding the client. Wikipedia describes the process of creating a client like this:
+  
+    Programming a TCP client application involves the following steps:
+    1.- Creating a TCP socket, with a call to socket().
+    2.- Connecting to the server with the use of connect(), passing a sockaddr_in structure with the sin_family set to AF_INET, sin_port set to the port the endpoint is listening (in network byte order), and sin_addr set to the IP address of the listening server (also in network byte order.)
+    3.- Communicating with the server by using send() and recv() or write() and read().
+    4.- Terminating the connection and cleaning up with a call to close().
+    
+</p>
+<h3> Lets create the socket </h3>
+<p>
+    This socket its going to behave very similar to an open file. We are going to have a file descriptor. So here are the connection functions:
+</p>
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno"> 1</span> <span class="kt">char</span>                    <span class="nf">init_socket</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">fd</span><span class="p">)</span>
+<span class="lineno"> 2</span> <span class="p">{</span>
+<span class="lineno"> 3</span>   <span class="k">struct</span> <span class="n">protoent</span>       <span class="o">*</span><span class="n">s_p</span><span class="p">;</span>
+<span class="lineno"> 4</span> 
+<span class="lineno"> 5</span>   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">s_p</span> <span class="o">=</span> <span class="n">getprotobyname</span><span class="p">(</span><span class="s">&quot;TCP&quot;</span><span class="p">)))</span>
+<span class="lineno"> 6</span>     <span class="p">{</span>
+<span class="lineno"> 7</span>       <span class="n">perror</span><span class="p">(</span><span class="s">&quot;getprotobyname&quot;</span><span class="p">);</span>
+<span class="lineno"> 8</span>       <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+<span class="lineno"> 9</span>     <span class="p">}</span>
+<span class="lineno">10</span>   <span class="k">if</span> <span class="p">((</span><span class="o">*</span><span class="n">fd</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="n">s_p</span><span class="o">-&gt;</span><span class="n">p_proto</span><span class="p">))</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="lineno">11</span>     <span class="p">{</span>
+<span class="lineno">12</span>       <span class="n">perror</span><span class="p">(</span><span class="s">&quot;socket&quot;</span><span class="p">);</span>
+<span class="lineno">13</span>       <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+<span class="lineno">14</span>     <span class="p">}</span>
+<span class="lineno">15</span>   <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_SUCCESS</span><span class="p">);</span>
+<span class="lineno">16</span> <span class="p">}</span>
+<span class="lineno">17</span> 
+<span class="lineno">18</span> <span class="kt">int</span>                     <span class="nf">connect_to_server</span><span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">s_in</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">sockfd</span><span class="p">,</span>
+<span class="lineno">19</span>                                           <span class="kt">int</span> <span class="n">port</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ip</span><span class="p">)</span>
+<span class="lineno">20</span> <span class="p">{</span>
+<span class="lineno">21</span>   <span class="n">memset</span><span class="p">(</span><span class="n">s_in</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">s_in</span><span class="p">));</span>
+<span class="lineno">22</span>   <span class="p">((</span><span class="k">struct</span> <span class="n">sockaddr_in</span><span class="o">*</span><span class="p">)</span><span class="n">s_in</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">sin_family</span> <span class="o">=</span> <span class="n">AF_INET</span><span class="p">;</span>
+<span class="lineno">23</span>   <span class="p">((</span><span class="k">struct</span> <span class="n">sockaddr_in</span><span class="o">*</span><span class="p">)</span><span class="n">s_in</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">sin_port</span> <span class="o">=</span> <span class="n">htons</span><span class="p">(</span><span class="n">port</span><span class="p">);</span>
+<span class="lineno">24</span>   <span class="p">((</span><span class="k">struct</span> <span class="n">sockaddr_in</span><span class="o">*</span><span class="p">)</span><span class="n">s_in</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span> <span class="o">=</span> <span class="n">inet_addr</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
+<span class="lineno">25</span>   <span class="k">if</span> <span class="p">(</span><span class="n">init_socket</span><span class="p">(</span><span class="n">sockfd</span><span class="p">))</span>
+<span class="lineno">26</span>     <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+<span class="lineno">27</span>   <span class="k">if</span> <span class="p">(</span><span class="n">connect</span><span class="p">(</span><span class="o">*</span><span class="n">sockfd</span><span class="p">,</span> <span class="n">s_in</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">s_in</span><span class="p">))</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="lineno">28</span>     <span class="p">{</span>
+<span class="lineno">29</span>       <span class="n">perror</span><span class="p">(</span><span class="s">&quot;connect&quot;</span><span class="p">);</span>
+<span class="lineno">30</span>       <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+<span class="lineno">31</span>     <span class="p">}</span>
+<span class="lineno">32</span>   <span class="k">return</span> <span class="p">(</span><span class="n">EXIT_SUCCESS</span><span class="p">);</span>
+<span class="lineno">33</span> <span class="p">}</span></code></pre></div>
+
+<p>The socket function has the following prototype in socket(3p) :</p>
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno">1</span> <span class="kt">int</span> <span class="nf">socket</span><span class="p">(</span><span class="kt">int</span> <span class="n">domain</span><span class="p">,</span> <span class="kt">int</span> <span class="n">type</span><span class="p">,</span> <span class="kt">int</span> <span class="n">protocol</span><span class="p">);</span></code></pre></div>
+
+<p>
+    We can see that it takes three arguments. The first argument, domain, refers to the adress family. We are going to use AF_INET, which is the macro for ipv4.
+    The second argument, type, specifies the communication semantics. We are going to be using tcp and the type we want is SOCK_STREAM.
+    For the third argument, protocol, in this case we read in socket(2) man page:
+    
+    The protocol specifies a  particular  protocol  to  be  used  with  the
+    socket.  Normally only a single protocol exists to support a particular
+    socket type within a given protocol family, in which case protocol  can
+    be  specified  as  0.   However, it is possible that many protocols may
+    exist, in which case a particular protocol must be  specified  in  this
+    manner.   The  protocol number to use is specific to the “communication
+    domain” in which communication is to take place; see protocols(5).  See
+    getprotoent(3) on how to map protocol name strings to protocol numbers.
+    
+</p>
+
+<p>
+    Next we use the connect system call which has this prototype in connect (3p):
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno">1</span> <span class="kt">int</span> <span class="nf">connect</span><span class="p">(</span><span class="kt">int</span> <span class="n">socket</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">address</span><span class="p">,</span> <span class="kt">socklen_t</span> <span class="n">address_len</span><span class="p">);</span></code></pre></div>
+
+</p>
+
+<p>   
+    The first argument is the file descriptor of the socket we just created. The second argument is a special strcture type that the socket api uses it looks like this:
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno">1</span> <span class="k">struct</span> <span class="n">sockaddr</span>
+<span class="lineno">2</span>     <span class="p">{</span>
+<span class="lineno">3</span>       <span class="n">u_short</span> <span class="n">sa_family</span><span class="p">;</span>
+<span class="lineno">4</span>       <span class="kt">char</span>    <span class="n">sa_data</span><span class="p">[</span><span class="mi">14</span><span class="p">];</span>
+<span class="lineno">5</span>     <span class="p">};</span></code></pre></div>
+
+That is the sockaddr structure, this is the most generic definition. The function takes the generic form but depending on what we use
+the structure for we will cast it in order to divide the data fields and access them acording to our needs. The structure is 16 bytes in size. The AF_INET (internet) family uses the sockaddr_in structure which is defined as follows:
+<br />
+
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno">1</span> <span class="k">struct</span> <span class="n">sockaddr_in</span> 
+<span class="lineno">2</span> <span class="p">{</span>
+<span class="lineno">3</span>   <span class="kt">short</span>    <span class="n">sin_family</span><span class="p">;</span> 
+<span class="lineno">4</span>   <span class="n">u_short</span>    <span class="n">sin_port</span><span class="p">;</span> 
+<span class="lineno">5</span>   <span class="k">struct</span>  <span class="n">in_addr</span>  <span class="n">sin_addr</span><span class="p">;</span> 
+<span class="lineno">6</span>   <span class="kt">char</span>    <span class="n">sin_zero</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
+<span class="lineno">7</span> <span class="p">};</span></code></pre></div>
+
+ The first 2 bytes under the section sin_family indicates how we are going to use the next 14 bytes.
+The first field stays the same but the following 14 bytes here are divided. The port that uses 2 bytes. A structure of type sin_addr that uses 4 bytes. And the rest we leave as zeroes.
+The in_addr structure can be used in diferent ways as well but here we will use it to stock an ip address as an unsigned long (S_addr).
+So we will use the macro s_addr to stock the address like this:
+
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="lineno">1</span> <span class="n">variable</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span> <span class="o">=</span> <span class="n">INADDR_ANY</span></code></pre></div>
+
+
+</p>
+
+<p>
+After the execution of this fucntions we will be connected to the server hopefully.
+From there we must send a request to the server. It is very important to know that instructions are sent as ascii strings.
+Every instruction is a 4 letter code followed by arguments and ended by \r\n that we will write to the socket file descriptor.
+</p>
+<div>
+ <img src="/images/screenshot1-w.png" alt="wireshark-capture" />
+</div>
+
+  </article>
+
+</div>
+
+    </div>
+
+    <footer class="container">
+  <div class="row">
+    <div class="eleven columns">
+    HELLO FOOTER
+    </div>
+  </div>
+</footer>
+
+
+  </body>
+
+</html>
