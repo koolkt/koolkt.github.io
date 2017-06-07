@@ -1,101 +1,50 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE HTML>
+<!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]--> 
+<!--[if IE 7 ]>	<html lang="en" class="ie ie7"> <![endif]--> 
+<!--[if IE 8 ]>	<html lang="en" class="ie ie8"> <![endif]--> 
+<!--[if IE 9 ]>	<html lang="en" class="ie ie9"> <![endif]--> 
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <title>Carmen</title>
+        <meta name="description" content="Carmen project launching page">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <link href="https://fonts.googleapis.com/css?family=GFS+Didot" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+    </head>
 
-  <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your awesome title</title>
-  <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
-">
+    <body id="home">
+        <div id="Header">
+            <div class="wrapper">
+	        <h1>Sauvons la maison de Georges Bizet !</h1>	
+            </div>
+        </div>
+        <div id="Content" class="wrapper"> 
+            <div class="countdown styled"></div> 
+            <h2 class="intro">Avant le lancement de la campagne de financement participatif</h2>
+            <div id="subscribe"> 
+	        <form action="" method="post" onsubmit="">
+		    <p><input name="" value="Enter your e-mail" type="text" id=""/>
+		        <input type="button" value="Submit"/></p>
+	        </form>
+	        <div id="socialIcons">
+		    <ul> 
+			<li><a href="" title="Twitter" class="twitterIcon"></a></li>
+			<li><a href="" title="facebook" class="facebookIcon"></a></li>
+			<li><a href="" title="linkedIn" class="linkedInIcon"></a></li>
+			<li><a href="" title="Pintrest" class="pintrestIcon"></a></li>
+		    </ul>
+	        </div>
+            </div>
+        </div>
 
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="canonical" href="http://yourdomain.com/">
-  <link rel="alternate" type="application/rss+xml" title="Your awesome title" href="http://yourdomain.com/feed.xml" />
-</head>
+        <!-- <div id="overlay"></div>
+           -->
+        <!--Scripts-->
+        <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="js/Backstretch.js"></script>
+        <script type="text/javascript" src="js/jquery.countdown.js"></script>
+        <script type="text/javascript" src="js/global.js"></script>
 
-
-  <body>
-
-    <div class="container">
-     <header class="site-header">
-
-</header>
-
- 		<div class="home">
-
-  <img src="/images/logo.png" alt="koolkat"/>
-
-  <ul class="post-list">
-    
-      <li>
-        <h2>
-          <a class="post-link" href="/2015/03/24/writing-an-ftp-server-and-client-in-c.html">Writing an ftp server and client in c</a>
-        </h2>
-        <span class="post-meta">Mar 24, 2015</span>
-        <!-- STRUCTURE
--Introduction to the ftp protocol.
--Explanation of the ftp protocol.
--Introduction to the socket api.
--Explanation of how to code the client.
--Explanation of how to code the server.
--->
-<p>
-    Currently i have a school project in which i'm asked to create an ftp server and client. So what is ftp? Acording to Wikipedia the file transfer protocol (FTP) is a standard system of digital rules for data exchange, a format convention. It is used to transfer computer files from one host to another host over a TCP-based network.
-    After searching a bit online and looking in wireshark here is what we know:
-</p>
-<ul>
-    <li>
-        Ftp has two modes passive and active.
-    </li>
-    <li>
-        Ftp uses two connections the data conection and the command connection.
-    </li>
-    <li>
-        The command connection uses the telnet protocol specification.
-    </li>
-    <li>
-        A new data conection is made each time we start an exchange.
-    </li>
-    <li>
-        There is an ascii and a binary mode
-    </li>  
-</ul>
-
-
-      </li>
-    
-      <li>
-        <h2>
-          <a class="post-link" href="/2015/03/24/first-post.html">Hello world</a>
-        </h2>
-        <span class="post-meta">Mar 24, 2015</span>
-        <p>
-    I wanted to create a blog about programming to practice my english and to share what i learn with others.
-    For now the stuff i write about will be simple.
-    I'm learning c and c++ at the moment.
-</p>
-
-
-      </li>
-    
-  </ul>
-
-  <p class="rss-subscribe">subscribe <a href="/feed.xml">via RSS</a></p>
-
-</div>
-
-    </div>
-
-    <footer class="container">
-  <div class="row">
-    <div class="eleven columns">
-    HELLO FOOTER
-    </div>
-  </div>
-</footer>
-
-
-  </body>
-
+    </body>
 </html>
